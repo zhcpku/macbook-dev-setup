@@ -1,4 +1,4 @@
-ORIGINAL_USER=$(whoami)
+#!/usr/bin/env bash
 
 echo "Hello $(whoami),"
 sleep 1
@@ -14,17 +14,17 @@ read -r email
 echo "Enter your full name (Ex. John Doe): "
 read -r username
 
-if [ -x "$(command -v brew)" ]; then
+if [[ -x "$(command -v brew)" ]]; then
     echo "✔️ Homebrew installed"
 else
     echo "Installing homebrew now..."
     sudo mkdir -p /usr/local/var/homebrew
-    sudo chown -R $(whoami) /usr/local/var/homebrew
+    sudo chown -R "$(whoami)" /usr/local/var/homebrew
     /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
-fi;
+fi
 
 sudo mkdir -p /usr/local/sbin
-sudo chown -R $(whoami) /usr/local/sbin
+sudo chown -R "$(whoami)" /usr/local/sbin
 
 echo "Making sure homebrew is up to date"
 brew update --force
@@ -32,23 +32,23 @@ brew upgrade
 brew doctor
 
 #  Configure Git
-if [ -x "$(command -v brew)" ]; then
+if [[ -x "$(command -v git)" ]]; then
     echo "✔️ git installed"
 else
     echo "Installing git"
     brew install git
-fi;
+fi
 
-echo "Setting global git config with email $email and username $username"
-git config --global --replace-all user.email "$email"
-git config --global --replace-all user.name "$username"
+echo "Setting global git config with email ${email} and username ${username}"
+git config --global --replace-all user.email "${email}"
+git config --global --replace-all user.name "${username}"
 
 # SSH Key
-if [ -f "~/.ssh/id_rsa" ]; then
+if [[ -f "${HOME}/.ssh/id_rsa" ]]; then
     echo "SSH Key exists"
 else
     echo "Generating an SSH Key - this will be added to your agent for you"
-    ssh-keygen -t rsa -b 4096 -C "$email"
+    ssh-keygen -t rsa -b 4096 -C "${email}"
     echo "Host *\n AddKeysToAgent yes\n UseKeychain yes\n IdentityFile ~/.ssh/id_rsa" | tee ~/.ssh/config
     eval "$(ssh-agent -s)"
 fi
@@ -97,45 +97,45 @@ echo "Installing Brew apps"
 }
 
 # JX
-if [ -x "$(command -v jx)" ]; then
-    echo "jx installed"
+if [[ -x "$(command -v jx)" ]]; then
+    echo "✔️ jx installed"
 else
     brew install jx
-    echo "\nsource <(jx completion zsh)" >> ~/.zshrc
-    echo "\nexport PATH=$HOME/.jx/bin:$PATH" >> ~/.zshrc
-fi;
+    echo "\nsource <(jx completion zsh)" >>~/.zshrc
+    echo "\nexport PATH=${HOME}/.jx/bin:${PATH}" >>~/.zshrc
+fi
 
 # kubectl
-if [ -x "$(command -v kubectl)" ]; then
-    echo "kubectl installed"
+if [[ -x "$(command -v kubectl)" ]]; then
+    echo "✔️ kubectl installed"
 else
     curl -LO "https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/darwin/amd64/kubectl"
     chmod +x ./kubectl
     sudo mv ./kubectl /usr/local/bin/kubectl
-    echo "\nsource <(kubectl completion zsh)" >> ~/.zshrc
-fi;
+    echo "\nsource <(kubectl completion zsh)" >>~/.zshrc
+fi
 
-if [ -x "$(command -v sops)" ]; then
-    echo "sops installed"
+if [[ -x "$(command -v sops)" ]]; then
+    echo "✔️ sops installed"
 else
     brew install sops
-fi;
+fi
 
 # safe
-if [ -x "$(command -v safe)" ]; then
-    echo "safe installed"
+if [[ -x "$(command -v safe)" ]]; then
+    echo "✔️ safe installed"
 else
     brew tap starkandwayne/cf
     brew install starkandwayne/cf/safe
-fi;
+fi
 
 # Make sure user is owner of homebrew directory
 echo "For n to work properly, you need to own homebrew stuff - setting $(whoami) as owner of $(brew --prefix)/*"
-sudo chown -R $(whoami) $(brew --prefix)/*
+sudo chown -R "$(whoami)" "$(brew --prefix)/*"
 
 # N
-if [ -x "$(command -v n)" ]; then
-    echo "N - Node version manager installed with latest LTS of Node"
+if [[ -x "$(command -v n)" ]]; then
+    echo "✔️ N - Node version manager installed with latest LTS of Node"
 else
     npm install -g n
     sudo mkdir -p /usr/local/n
@@ -145,18 +145,18 @@ else
     sudo mkdir -p /usr/local/include
 
     # take ownership of node install destination folders
-    sudo chown -R $(whoami) /usr/local/n /usr/local/bin /usr/local/lib /usr/local/include /usr/local/share
+    sudo chown -R "$(whoami)" /usr/local/n /usr/local/bin /usr/local/lib /usr/local/include /usr/local/share
     # Use the latest version of Node
     echo "Using latest version of Node"
     n latest
-fi;
+fi
 
-if [ -x "$(command -v aws)" ]; then
-    echo "aws cli installed"
+if [[ -x "$(command -v aws)" ]]; then
+    echo "✔️ aws cli installed"
 else
     curl "https://awscli.amazonaws.com/AWSCLIV2.pkg" -o "AWSCLIV2.pkg"
     sudo installer -pkg AWSCLIV2.pkg -target /
-fi;
+fi
 
 echo "Installing hyper term package manager and meta"
 npm i -g meta
@@ -168,32 +168,33 @@ mkdir -p ~/dev
 # set up vscode
 echo "Configure VS Code extensions"
 sleep 1
-code    --install-extension ms-azuretools.vscode-docker \
-        --install-extension marcostazi.VS-code-vagrantfile \
-        --install-extension mauve.terraform \
-        --install-extension secanis.jenkinsfile-support \
-        --install-extension formulahendry.code-runner \
-        --install-extension mikestead.dotenv \
-        --install-extension oderwat.indent-rainbow \
-        --install-extension orta.vscode-jest \
-        --install-extension jenkinsxio.vscode-jx-tools \
-        --install-extension mathiasfrohlich.kotlin \
-        --install-extension christian-kohler.npm-intellisense \
-        --install-extension sujan.code-blue \
-        --install-extension waderyan.gitblame \
-        --install-extension ms-vscode.go \
-        --install-extension in4margaret.compareit \
-        --install-extension andys8.jest-snippets \
-        --install-extension euskadi31.json-pretty-printer \
-        --install-extension yatki.vscode-surround \
-        --install-extension wmaurer.change-case
+code --install-extension ms-azuretools.vscode-docker \
+    --install-extension marcostazi.VS-code-vagrantfile \
+    --install-extension mauve.terraform \
+    --install-extension secanis.jenkinsfile-support \
+    --install-extension formulahendry.code-runner \
+    --install-extension mikestead.dotenv \
+    --install-extension oderwat.indent-rainbow \
+    --install-extension orta.vscode-jest \
+    --install-extension jenkinsxio.vscode-jx-tools \
+    --install-extension mathiasfrohlich.kotlin \
+    --install-extension christian-kohler.npm-intellisense \
+    --install-extension sujan.code-blue \
+    --install-extension waderyan.gitblame \
+    --install-extension ms-vscode.go \
+    --install-extension in4margaret.compareit \
+    --install-extension andys8.jest-snippets \
+    --install-extension euskadi31.json-pretty-printer \
+    --install-extension yatki.vscode-surround \
+    --install-extension wmaurer.change-case
 
 echo "Copying your SSH key to your clipboard"
-pbcopy < ~/.ssh/id_rsa.pub
+pbcopy <~/.ssh/id_rsa.pub
 sleep 1
 echo "Add the generated SSH key to your GitHub account. It has been copied to your clipboard"
 echo "https://github.com/settings/keys"
 sleep 1
 sed -i .bak "s/shell:[[:space:]]'',$/shell: 'zsh',/g" ~/.hyper.js
 sleep 1
+
 source ~/.zshrc
